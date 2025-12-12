@@ -1,0 +1,141 @@
+<div class="container">
+  <!-- En-tête -->
+  <div class="header-section">
+    <div class="header-content">
+      <div class="header-text">
+        <h1 class="main-title">
+          <span class="icon">🗺️</span>
+          Gestion des Régions
+        </h1>
+        <p class="subtitle">Gérez les régions de votre organisation</p>
+      </div>
+      <div class="stats-cards">
+        <div class="stat-card">
+          <div class="stat-number">{{ regions.length }}</div>
+          <div class="stat-label">Total Régions</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Formulaire d'ajout/modification -->
+  <div class="form-section">
+    <div class="section-header">
+      <h2 class="section-title">
+        <span class="icon">{{ editingRegionId ? '✏️' : '➕' }}</span>
+        {{ editingRegionId ? 'Modifier la Région' : 'Ajouter une Région' }}
+      </h2>
+      <span *ngIf="editingRegionId" class="edit-badge">Mode édition</span>
+    </div>
+
+    <form (ngSubmit)="addRegion()" class="modern-form">
+      <div class="form-row">
+        <div class="form-field">
+          <label for="nom" class="field-label">
+            Nom de la région <span class="required">*</span>
+          </label>
+          <input 
+            type="text" 
+            id="nom"
+            [(ngModel)]="newRegion.nom"
+            name="nom" 
+            placeholder="Ex: Île-de-France"
+            required
+            class="field-input">
+        </div>
+
+        
+
+      
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          <span class="icon">{{ editingRegionId ? '💾' : '➕' }}</span>
+          {{ editingRegionId ? 'Enregistrer les modifications' : 'Ajouter la région' }}
+        </button>
+        <button 
+          *ngIf="editingRegionId" 
+          type="button" 
+          (click)="cancelEdit()" 
+          class="btn btn-secondary">
+          <span class="icon">✖</span>
+          Annuler
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Liste des régions -->
+  <div class="table-section">
+    <div class="section-header">
+      <h2 class="section-title">
+        <span class="icon">📋</span>
+        Liste des Régions
+      </h2>
+      <div class="table-count">
+        <span class="count-badge">{{ regions.length }}</span>
+        <span class="count-label">région(s)</span>
+      </div>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="modern-table">
+        <thead>
+          <tr>
+            <th class="col-id">ID</th>
+            <th>Nom de la région</th>
+            <th class="col-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let region of regions" class="table-row">
+            <td class="cell-id">
+              <span class="id-badge">#{{ region.id }}</span>
+            </td>
+            
+            <td>
+              <div class="region-info">
+                <span class="region-icon">🗺️</span>
+                <span class="region-name">{{ region.nom }}</span>
+              </div>
+            </td>
+            
+          
+            
+           
+            <td class="cell-actions">
+              <div class="action-buttons">
+                <button 
+                  (click)="editRegion(region)" 
+                  class="btn-action btn-edit"
+                  [disabled]="editingRegionId === region.id"
+                  [title]="editingRegionId === region.id ? 'En cours d\'édition' : 'Modifier'">
+                  <span class="icon">✏️</span>
+                </button>
+                <button 
+                  (click)="deleteRegion(region.id!)"
+                  class="btn-action btn-delete"
+                  title="Supprimer">
+                  <span class="icon">🗑️</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+
+          <tr *ngIf="regions.length === 0" class="empty-row">
+            <td colspan="5">
+              <div class="empty-state">
+                <div class="empty-icon">🗺️</div>
+                <h3 class="empty-title">Aucune région</h3>
+                <p class="empty-text">
+                  Commencez par ajouter votre première région à l'aide du formulaire ci-dessus.
+                </p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

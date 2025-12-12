@@ -29,12 +29,10 @@
             "styles": [
               "src/styles.css"
             ],
-            "scripts": [],
-            "server": "src/main.server.ts",
-            "outputMode": "server",
-            "ssr": {
-              "entry": "src/server.ts"
-            }
+            "scripts": []
+           
+            
+            
           },
           "configurations": {
             "production": {
@@ -97,5 +95,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": "6268d9c5-fe74-4d08-b0e4-914fd17c576e"
   }
 }
