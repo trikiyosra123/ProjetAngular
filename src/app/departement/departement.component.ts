@@ -78,14 +78,14 @@ regions: Region[] = [];
   }
 
   addDepartement(): void {
-    if (!this.newDept.nom || !this.newDept.regionId || this.newDept.regionId) {
+    if (!this.newDept.nom || !this.newDept.regionId ) {
       alert('Veuillez remplir tous les champs obligatoires');
       return;
     }
 
     // Trouver la région complète
     
-  const selectedRegion = this.regions.find(r => r.id === this.newDept.regionId);
+  const selectedRegion = this.regions.find(r => r.id === +this.newDept.regionId);
 
 if (!selectedRegion) {
   alert('Région invalide');

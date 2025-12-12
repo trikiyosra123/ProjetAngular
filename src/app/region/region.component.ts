@@ -2,9 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RegionService } from '../services/region.service';
-import { Region } from '../models/models'; // ← Import depuis models
+import { Region } from '../models/models';
 
-// ... reste du code
 @Component({
   selector: 'app-region',
   standalone: true,
@@ -16,10 +15,21 @@ export class RegionComponent implements OnInit {
   regions: Region[] = [];
   
   newRegion: Region = {
+    id: 0,
     nom: ''
   };
-  
+  notification: { 
+    show: boolean; 
+    message: string; 
+    type: 'success' | 'error' | 'info' 
+  } = {
+    show: false,
+    message: '',
+    type: 'success'
+  };
+     
   editingRegionId: number | null = null;
+  isLoading: boolean = false;
 
   constructor(private regionService: RegionService) {}
 
@@ -28,47 +38,79 @@ export class RegionComponent implements OnInit {
   }
 
   loadRegions(): void {
+    this.isLoading = true;
     this.regionService.getAll().subscribe({
       next: (data) => {
         this.regions = data;
-        console.log('Régions chargées:', this.regions);
+        this.isLoading = false;
       },
-      error: (err) => console.error('Erreur chargement régions:', err)
+      error: () => {
+        alert('Erreur lors du chargement des régions');
+        this.isLoading = false;
+      }
     });
   }
+  // 📌 NOTIFICATIONS
+  // ============================================================
+  showNotification(message: string, type: 'success' | 'error' | 'info') {
+    console.log('🔔 Notification appelée:', message, type); 
+    this.notification = { show: true, message, type };
+    console.log('📊 État notification:', this.notification); 
+    
+   
+  }
+
 
   addRegion(): void {
-    if (!this.newRegion.nom) {
-      alert('Veuillez remplir tous les champs obligatoires');
+    if (!this.newRegion.nom || this.newRegion.nom.trim() === '') {
+      this.showNotification('Veuillez remplir le nom de la région', 'error');
       return;
     }
 
+    // Déplacer la déclaration const ICI, dans la méthode
+    const dataToSend = {
+      nom: this.newRegion.nom.trim(),
+    };
+    
     if (this.editingRegionId) {
-      this.regionService.update(this.editingRegionId, this.newRegion).subscribe({
+      // MODIFICATION
+      this.regionService.update(this.editingRegionId, dataToSend).subscribe({
         next: () => {
-          alert('Région modifiée avec succès !');
+          this.showNotification('Région modifiée avec succès !', 'success');
           this.loadRegions();
           this.resetForm();
         },
-        error: (err) => console.error('Erreur modification région:', err)
-      });
+        error: () => 
+          this.showNotification('Erreur modification région', 'error')
+        });
+       
     } else {
-      this.regionService.create(this.newRegion).subscribe({
+      // AJOUT
+      this.regionService.create(dataToSend).subscribe({
         next: () => {
-          alert('Région ajoutée avec succès !');
+          this.showNotification('Région ajoutée avec succès !', 'success');
           this.loadRegions();
           this.resetForm();
         },
-        error: (err) => console.error('Erreur ajout région:', err)
+        error: () => {
+          this.showNotification('Erreur ajout région', 'error');
+          this.isLoading = false;
+        },
+        complete: () => {
+          this.isLoading = false;
+        }
       });
     }
   }
 
+
   editRegion(region: Region): void {
-    this.editingRegionId = region.id!;
-    this.newRegion = {
-      nom: region.nom,
+    this.newRegion = { 
+      id: region.id,
+      nom: region.nom 
     };
+        this.editingRegionId = region.id!;
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -78,27 +120,29 @@ export class RegionComponent implements OnInit {
 
   resetForm(): void {
     this.newRegion = {
-      nom: '',
-     
+      id: 0,
+      nom: ''
     };
     this.editingRegionId = null;
   }
+deleteRegion(id: number): void {
+  if (!confirm('Êtes-vous sûr de vouloir supprimer cette région ?')) return;
 
-  deleteRegion(id: number): void {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cette région ?')) return;
+  this.regionService.delete(id).subscribe({
+    next: () => {
+      this.showNotification('Région supprimée avec succès !', 'success');
 
-    this.regionService.delete(id).subscribe({
-      next: () => {
-        alert('Région supprimée avec succès !');
-        this.loadRegions();
-        
-        if (this.editingRegionId === id) {
-          this.resetForm();
-        }
-      },
-      error: (err) => console.error('Erreur suppression région:', err)
-    });
-  }
+            // Mettre à jour la liste localement sans recharger depuis le serveur
+            this.loadRegions();
 
- 
+      
+      if (this.editingRegionId === id) {
+        this.resetForm();
+      }
+    },
+    error: () => {
+      this.showNotification('Erreur lors de la suppression', 'error');
+    }
+  });
+}
 }

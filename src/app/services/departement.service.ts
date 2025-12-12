@@ -16,7 +16,7 @@ export class DepartementService {
   }
 
   create(departement: Departement): Observable<Departement> {
-    return this.http.post<Departement>(`${this.apiUrl}/ajouterDepartement`, departement);
+    return this.http.post<Departement>(`${this.apiUrl}/AjouterDepartement`, departement);
   }
 
   update(id: number, departement: Departement): Observable<Departement> {

@@ -39,7 +39,7 @@
             id="nom"
             [(ngModel)]="newRegion.nom"
             name="nom" 
-            placeholder="Ex: Île-de-France"
+            placeholder="Entrer une region"
             required
             class="field-input">
         </div>
@@ -119,18 +119,6 @@
                   title="Supprimer">
                   <span class="icon">🗑️</span>
                 </button>
-              </div>
-            </td>
-          </tr>
-
-          <tr *ngIf="regions.length === 0" class="empty-row">
-            <td colspan="5">
-              <div class="empty-state">
-                <div class="empty-icon">🗺️</div>
-                <h3 class="empty-title">Aucune région</h3>
-                <p class="empty-text">
-                  Commencez par ajouter votre première région à l'aide du formulaire ci-dessus.
-                </p>
               </div>
             </td>
           </tr>

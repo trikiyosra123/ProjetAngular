@@ -20,7 +20,7 @@ export class RegionService {
   }
 
   create(region: Region): Observable<Region> {
-    return this.http.post<Region>(`${this.apiUrl}/ajouterRegion`, region);
+    return this.http.post<Region>(`${this.apiUrl}/AjouterRegion`, region);
   }
 
   update(id: number, region: Region): Observable<Region> {
@@ -28,6 +28,6 @@ export class RegionService {
   }
 
   delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/supprimerRegion/${id}`);
+    return this.http.delete<void>(`${this.apiUrl}/deleteRegion/${id}`);
   }
 }
