@@ -1,59 +1,88 @@
 <div class="container">
   <!-- En-tête -->
   <div class="header">
-    <h1>Gestion des Personnes</h1>
-    <p>Total : {{ personnes.length }} personne(s)</p>
+    <div>
+      <h1>Gestion des Personnes</h1>
+      <p>Total : {{ personnes.length }} personne(s)</p>
+    </div>
+    <button class="btn-add-modal" (click)="openModal()">
+      + Ajouter une Personne
+    </button>
   </div>
 
   <!-- FILTRES REGION & DEPARTEMENT --> 
   <div class="filters">
-    <label>Filtrer par Région</label>
-    <select [(ngModel)]="selectedRegionId" (change)="applyFilters()">
-      <option [value]="null">-- Toutes les régions --</option>
-      <option *ngFor="let region of regions" [value]="region.id">{{ region.nom }}</option>
-    </select>
+    <div class="filter-group">
+      <label>Filtrer par Région</label>
+      <select [(ngModel)]="selectedRegionId" (change)="onRegionChange()">
+        <option [value]="null">-- Toutes les régions --</option>
+        <option *ngFor="let region of regions" [value]="region.id">{{ region.nom }}</option>
+      </select>
+    </div>
 
-    <label>Filtrer par Département</label>
-    <select [(ngModel)]="selectedDepartementId" (change)="applyFilters()">
-      <option [value]="null">-- Tous les départements --</option>
-      <option *ngFor="let dept of departements" [value]="dept.id">{{ dept.nom }}</option>
-    </select>
+    <div class="filter-group">
+      <label>Filtrer par Département</label>
+      <select [(ngModel)]="selectedDepartementId" (change)="applyFilters()">
+        <option [value]="null">-- Tous les départements --</option>
+        <option *ngFor="let dept of departements" [value]="dept.id">{{ dept.nom }}</option>
+      </select>
+    </div>
 
-    <button (click)="resetFilters()">Réinitialiser les filtres</button>
-  <p>{{ filteredPersonnes.length }} personne(s) trouvée(s)</p>
-
+    <button class="btn-reset" (click)="resetFilters()">Réinitialiser les filtres</button>
+    <p class="filter-result">{{ filteredPersonnes.length }} personne(s) trouvée(s)</p>
   </div>
 
-  <!-- Formulaire d'ajout/modification -->
-  <div class="form-card">
-    <h2>{{ editingPersonneId ? 'Modifier la Personne' : 'Ajouter une Nouvelle Personne' }}</h2>
-    <form (ngSubmit)="addPersonne()">
-      <div class="form-grid">
-      <div class="form-group">
-      <label>Nom *</label>
-      <input type="text" [(ngModel)]="newPersonne.nom" name="nom" required placeholder="Nom" />
-</div>
-      <div class="form-group">
+  <!-- MODALE -->
+  <div class="modal-overlay" *ngIf="isModalOpen" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ editingPersonneId ? 'Modifier la Personne' : 'Ajouter une Nouvelle Personne' }}</h2>
+        <button class="close-btn" (click)="closeModal()">×</button>
+      </div>
 
-      <label>Prénom *</label>
-      <input type="text" [(ngModel)]="newPersonne.prenom" name="prenom" required placeholder="Prénom" />
-      </div>
-      <div class="form-group">
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Nom <span class="required">*</span></label>
+            <input
+              type="text"
+              [(ngModel)]="newPersonne.nom"
+              placeholder="Nom"
+              class="form-input"
+            />
+          </div>
 
-      <label>Département *</label>
-      <select [(ngModel)]="newPersonne.departementId" name="departementId" required>
-        <option value="" disabled selected>Sélectionner un département</option>
-        <option *ngFor="let dep of departements" [value]="dep.id">
-          {{ dep.nom }}
-        </option>
-      </select>
+          <div class="form-group">
+            <label>Prénom <span class="required">*</span></label>
+            <input
+              type="text"
+              [(ngModel)]="newPersonne.prenom"
+              placeholder="Prénom"
+              class="form-input"
+            />
+          </div>
+
+          <div class="form-group full-width">
+            <label>Département <span class="required">*</span></label>
+            <select [(ngModel)]="newPersonne.departementId" class="form-select">
+              <option [value]="0" disabled>Sélectionner un département</option>
+              <option *ngFor="let dep of allDepartements" [value]="dep.id">
+                {{ dep.nom }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn-submit" (click)="addPersonne()">
+            {{ editingPersonneId ? 'Modifier' : 'Ajouter' }}
+          </button>
+          <button class="btn-cancel" (click)="closeModal()">
+            Annuler
+          </button>
+        </div>
       </div>
-      </div>
-      <div class="form-actions">
-        <button type="submit">{{ editingPersonneId ? 'Modifier' : 'Ajouter' }}</button>
-        <button type="button" (click)="resetForm()">Annuler</button>
-      </div>
-    </form>
+    </div>
   </div>
 
   <!-- Liste des personnes -->
@@ -71,20 +100,20 @@
       </thead>
       <tbody>
         <tr *ngFor="let p of filteredPersonnes">
-          <td>{{ getInitials(p.nom, p.prenom) }}</td>
+          <td><div class="initials">{{ getInitials(p.nom, p.prenom) }}</div></td>
           <td>{{ p.nom }}</td>
           <td>{{ p.prenom }}</td>
           <td>{{ p.departement?.nom }}</td>
-          <td>
-            <button (click)="editPersonne(p)">✏️</button>
-            <button (click)="deletePersonne(p.id)">🗑️</button>
+          <td class="actions">
+            <button class="btn-edit" (click)="editPersonneInModal(p)">✏️</button>
+            <button class="btn-delete" (click)="deletePersonne(p.id)">🗑️</button>
           </td>
         </tr>
       </tbody>
     </table>
   </div>
 
-  <!-- Notification simple -->
+  <!-- Notification -->
   <div *ngIf="notification.show" class="notification" [ngClass]="notification.type">
     {{ notification.message }}
   </div>

@@ -43,6 +43,8 @@ export class PersonneComponent implements OnInit {
   selectedDepartementId: number | null = null;
   editingPersonneId: number | null = null;
 
+    isModalOpen: boolean = false;
+
   constructor(
     private personneService: PersonneService,
     private departementService: DepartementService,
@@ -70,6 +72,28 @@ export class PersonneComponent implements OnInit {
     });
   }
 
+ // 🆕 OUVRIR LA MODALE
+  openModal() {
+    this.isModalOpen = true;
+  }
+
+  // 🆕 FERMER LA MODALE
+  closeModal() {
+    this.isModalOpen = false;
+    this.resetForm();
+  }
+
+  // 🆕 ÉDITER DANS LA MODALE
+  editPersonneInModal(personne: any) {
+    this.newPersonne = {
+      nom: personne.nom,
+      prenom: personne.prenom,
+      departementId: personne.departement?.id || 0
+    };
+    this.editingPersonneId = personne.id;
+    this.openModal();
+  }
+  
    // 📌 NOTIFICATIONS
   // ============================================================
   showNotification(message: string, type: 'success' | 'error' | 'info') {
