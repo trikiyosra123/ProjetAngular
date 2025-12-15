@@ -110,6 +110,9 @@ body {
 .stats-cards {
   display: flex;
   gap: 1.5rem;
+      justify-content: flex-start;
+          flex-direction: column;
+
 }
 
 .stat-card {
@@ -609,10 +612,7 @@ input[type="number"]::-webkit-inner-spin-button {
     align-items: flex-start;
   }
 
-  .stats-cards {
-    width: 100%;
-    justify-content: flex-start;
-  }
+  
 }
 
 @media (max-width: 768px) {
@@ -687,12 +687,7 @@ input[type="number"]::-webkit-inner-spin-button {
     gap: 0.5rem;
   }
 
-  .stats-cards {
-    flex-direction: column;
-    width: 100%;
-  }
+ 
 
-  .stat-card {
-    width: 100%;
-  }
+ 
 }
