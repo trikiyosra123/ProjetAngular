@@ -260,7 +260,7 @@ body::after {
 }
 
 .text-warning {
-  color: #fbbf24;
+  color: #8124fb;
   animation: warningBlink 2s ease-in-out infinite;
 }
 
