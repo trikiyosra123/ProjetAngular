@@ -5,6 +5,7 @@ import { PersonneService } from '../services/personne.service';
 import { DepartementService } from '../services/departement.service';
 import { RegionService } from '../services/region.service';
 import { forkJoin } from 'rxjs';
+import { ReportService } from '../services/report.Service';
 
 @Component({
   selector: 'app-personne',
@@ -18,18 +19,28 @@ export class PersonneComponent implements OnInit {
   // ============================================================
   employeeService = inject(PersonneService);
   departmentService = inject(DepartementService);
-  cdRef = inject(ChangeDetectorRef);
 
   personnes: any[] = [];
   departements: any[] = [];
     filteredPersonnes: any[] = [];
   allDepartements: any[] = [];
   regions: any[] = [];
-  newPersonne = { 
-    nom: '',
-    prenom: '',
-    departementId: 0
-  };
+  selectedRegionId: number | null = null;
+  selectedDepartementId: number | null = null;
+   editingPersonneId: number | null = null;
+typeDeplacement: 'NONE' | 'DEPARTEMENT' | 'REGION' = 'NONE';
+
+nouveauDepartementId: number | null = null;
+nouvelleRegionId: number | null = null;
+    isModalOpen: boolean = false;
+    
+ newPersonne = { 
+  nom: '',
+  prenom: '',
+  departementId: null as number | null,
+  regionId: null as number | null
+};
+
   notification: { 
     show: boolean; 
     message: string; 
@@ -39,16 +50,14 @@ export class PersonneComponent implements OnInit {
     message: '',
     type: 'success'
   };
-   selectedRegionId: number | null = null;
-  selectedDepartementId: number | null = null;
-  editingPersonneId: number | null = null;
-
-    isModalOpen: boolean = false;
+ 
 
   constructor(
     private personneService: PersonneService,
     private departementService: DepartementService,
-    private regionService: RegionService
+    private regionService: RegionService,
+    private cdRef: ChangeDetectorRef,
+    private reportService: ReportService
 
   ){}
 
@@ -88,8 +97,9 @@ export class PersonneComponent implements OnInit {
     this.newPersonne = {
       nom: personne.nom,
       prenom: personne.prenom,
-      departementId: personne.departement?.id || 0
-    };
+  departementId: personne.departement?.id || null,
+      regionId: personne.departement?.region?.id || null
+        };
     this.editingPersonneId = personne.id;
     this.openModal();
   }
@@ -138,7 +148,7 @@ applyFilters() {
       let match = true;
 // Vérifier région
       if (this.selectedRegionId !== null) {
-        match = match && personne.departement?.region != null &&
+        match = match && personne.departement?.region != null &&     // match est un booléen (true / false)
          personne.departement.region.id == this.selectedRegionId;
       }
       
@@ -184,21 +194,25 @@ addPersonne() {
     const dataToSend = {
       nom: this.newPersonne.nom,
       prenom: this.newPersonne.prenom,
-      departement: { id: this.newPersonne.departementId }
+        departement: { id: this.newPersonne.departementId }
     };
 
     if (this.editingPersonneId) {
+
       this.personneService.update(this.editingPersonneId, dataToSend).subscribe({
         next: () => {
+          this.closeModal();
           this.showNotification('Personne modifiée avec succès !', 'success');
           this.resetForm();
           this.loadPersonnes();
+
         },
         error: () => this.showNotification('Erreur modification personne', 'error')
       });
     } else {
       this.personneService.create(dataToSend).subscribe({
         next: () => {
+          this.closeModal();
           this.showNotification('Personne ajoutée avec succès !', 'success');
           this.resetForm();
           this.loadPersonnes();
@@ -208,15 +222,16 @@ addPersonne() {
     }
   }
   resetForm() {
-    this.newPersonne = { nom: '', prenom: '', departementId: 0 };
+    this.newPersonne = { nom: '', prenom: '', departementId: null, regionId: null };
     this.editingPersonneId = null;
   }
 
-    editPersonne(personne: any) {
+    editPersonneModel(personne: any) {
     this.newPersonne = {
       nom: personne.nom,
       prenom: personne.prenom,
-      departementId: personne.departement?.id || personne.departementId
+      departementId: personne.departement?.id || null,
+      regionId: personne.departement?.region?.id || null
     };
     this.editingPersonneId = personne.id;
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -241,6 +256,34 @@ addPersonne() {
       error: () => this.showNotification('Erreur suppression personne', 'error')
     });
   }
+downloadAttestations(): void {
+    console.log('filteredPersonnes = ', this.filteredPersonnes);
+  if (this.filteredPersonnes.length === 0) {
+    this.showNotification('Aucune personne à générer', 'info');
+    return;
+  }
+
+  //  TOUJOURS une liste (même sans filtre)
+  const personneId = this.filteredPersonnes.map(p => p.id);
+  this.reportService.downloadAttestations(personneId).subscribe({       //fait un appel HTTP au back-end
+    next: (blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'attestations_personnes.pdf';
+      a.click();
+      window.URL.revokeObjectURL(url);
+    },
+    error: (err) => {
+      console.error('Erreur téléchargement attestations:', err);
+      this.showNotification(
+        'Erreur lors du téléchargement des attestations',
+        'error'
+      );
+    }
+  });
+}
+
 
   getInitials(nom: string, prenom: string): string {
     if (!nom || !prenom) return '??';
@@ -248,8 +291,27 @@ addPersonne() {
     const lastInitial = nom.charAt(0).toUpperCase();
     return firstInitial + lastInitial;
   }
+downloadReport(): void {
+  const regionId = this.selectedRegionId ?? undefined;
+  const deptId = this.selectedDepartementId ?? undefined;
 
-  
-  
-  
+  this.reportService.downloadPdf(regionId, deptId).subscribe({
+    next: (blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'liste_personnes.pdf';
+      a.click();
+      window.URL.revokeObjectURL(url);
+    },
+    error: (err) => {
+      console.error('Erreur téléchargement PDF:', err);
+      this.showNotification('Erreur lors du téléchargement du PDF', 'error');
+    }
+  });
 }
+
+
+}
+  
+  

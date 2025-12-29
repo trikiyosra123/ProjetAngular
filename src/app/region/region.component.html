@@ -1,24 +1,12 @@
 <div class="container">
-  <!-- En-tête -->
-  <div class="header-section">
-    <div class="header-content">
-      <div class="header-text">
-        <h1 class="main-title">
-          <span class="icon">🗺️</span>
-          Gestion des Régions
-        </h1>
-        <p class="subtitle">Gérez les régions de votre organisation</p>
-      </div>
-      <div class="stats-cards">
-        <div class="stat-card">
-          <div class="stat-number">{{ regions.length }}</div>
-          <div class="stat-label">Total Régions</div>
-        </div>
-      </div>
-    </div>
+  <h1>Gestion des Régions</h1>
+ <!-- Bouton pour générer/télécharger le PDF à gauche -->
+  <div class="report-actions ">
+    <button (click)="downloadReport()" class="btn-download">
+      📄 Télécharger le PDF
+    </button>
   </div>
-
-  <!-- Formulaire d'ajout/modification -->
+  <!-- Formulaire d'ajout/modification en haut -->
   <div class="form-section">
     <div class="section-header">
       <h2 class="section-title">
@@ -39,11 +27,10 @@
             id="nom"
             [(ngModel)]="newRegion.nom"
             name="nom" 
-            placeholder="Entrer une region"
+            placeholder="Entrer une région"
             required
             class="field-input">
         </div>
-      
       </div>
 
       <div class="form-actions">
@@ -56,68 +43,52 @@
           type="button" 
           (click)="cancelEdit()" 
           class="btn btn-secondary">
-          <span class="icon">✖</span>
-          Annuler
+          ✖ Annuler
         </button>
       </div>
     </form>
   </div>
 
-  <!-- Liste des régions -->
-  <div class="table-section">
-    <div class="section-header">
-      <h2 class="section-title">
-        <span class="icon">📋</span>
-        Liste des Régions
-      </h2>
-      
-    </div>
+ 
 
-    <div class="table-wrapper">
-      <table class="modern-table">
-        <thead>
-          <tr>
-            <th class="col-id">ID</th>
-            <th>Nom de la région</th>
-            <th class="col-actions">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let region of regions" class="table-row">
-            <td class="cell-id">
-              <span class="id-badge">#{{ region.id }}</span>
-            </td>
-            
-            <td>
-              <div class="region-info">
-                <span class="region-icon">🗺️</span>
-                <span class="region-name">{{ region.nom }}</span>
-              </div>
-            </td>
-            
-          
-            
-           
-            <td class="cell-actions">
-              <div class="action-buttons">
-                <button 
-                  (click)="editRegion(region)" 
-                  class="btn-action btn-edit"
-                  [disabled]="editingRegionId === region.id"
-                  [title]="editingRegionId === region.id ? 'En cours d\'édition' : 'Modifier'">
-                  <span class="icon">✏️</span>
-                </button>
-                <button 
-                  (click)="deleteRegion(region.id!)"
-                  class="btn-action btn-delete"
-                  title="Supprimer">
-                  <span class="icon">🗑️</span>
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+  <!-- Grille des régions -->
+  <div class="regions-grid">
+    <div 
+      class="region-card" 
+      *ngFor="let region of regions" 
+      (click)="selectRegion(region)"
+      [class.selected]="selectedRegionId === region.id">
+
+      <h2>{{ region.nom }}</h2>
+      <p>ID: {{ region.id }}</p>
+
+      <!-- Boutons actions -->
+      <div class="action-buttons">
+        <button 
+          (click)="editRegion(region); $event.stopPropagation()" 
+          class="btn-action btn-edit"
+          [disabled]="editingRegionId === region.id"
+          [title]="editingRegionId === region.id ? 'En cours d\'édition' : 'Modifier'">
+          ✏️
+        </button>
+        <button 
+          (click)="deleteRegion(region.id!); $event.stopPropagation()"
+          class="btn-action btn-delete"
+          title="Supprimer">
+          🗑️
+        </button>
+      </div>
+
+      <span class="click-hint">Cliquer pour voir les départements</span>
+
+      <!-- Liste des départements si cette région est sélectionnée -->
+      <div class="departements-list" *ngIf="selectedRegionId === region.id">
+        <h3>Départements</h3>
+        <div *ngIf="departements.length === 0">Aucun département</div>
+        <ul>
+          <li *ngFor="let dept of departements">{{ dept.nom }}</li>
+        </ul>
+      </div>
     </div>
   </div>
 </div>

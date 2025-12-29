@@ -26,4 +26,17 @@ export class DepartementService {
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
+  getByRegion(regionId: number): Observable<Departement[]> {
+  return this.http.get<Departement[]>(`${this.apiUrl}/byRegion?regionId=${regionId}`);
+}
+
+   // 🔹 Nouvelle méthode pour vérifier les liaisons
+  hasLiaisons(id: number): Observable<boolean> {
+    return this.http.get<boolean>(`${this.apiUrl}/hasLiaisons/${id}`);
+  }
+  // 🔹 Compter le nombre de personnes dans un département
+countPersonnes(id: number): Observable<number> {
+  return this.http.get<number>(`${this.apiUrl}/countPersonnes/${id}`);
+}
+
 }

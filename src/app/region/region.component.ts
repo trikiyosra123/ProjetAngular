@@ -2,7 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RegionService } from '../services/region.service';
-import { Region } from '../models/models';
+import { Departement, Region } from '../models/models';
+import { ReportService } from '../services/report.Service';
+import { DepartementService } from '../services/departement.service';
 
 @Component({
   selector: 'app-region',
@@ -13,7 +15,7 @@ import { Region } from '../models/models';
 })
 export class RegionComponent implements OnInit {
   regions: Region[] = [];
-  
+    departements: Departement[] = [];
   newRegion: Region = {
     id: 0,
     nom: ''
@@ -30,13 +32,34 @@ export class RegionComponent implements OnInit {
      
   editingRegionId: number | null = null;
   isLoading: boolean = false;
+ selectedRegionId: number | null = null;
+  constructor(private regionService: RegionService,
+          private reportService: ReportService,
+              private departementService: DepartementService
 
-  constructor(private regionService: RegionService) {}
+
+  ) {}
 
   ngOnInit(): void {
     this.loadRegions();
   }
-
+downloadReport(): void {
+  
+  this.reportService. downloadRegions().subscribe({
+    next: (blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'liste_regions.pdf';
+      a.click();
+      window.URL.revokeObjectURL(url);
+    },
+    error: (err) => {
+      console.error('Erreur téléchargement PDF:', err);
+      this.showNotification('Erreur lors du téléchargement du PDF', 'error');
+    }
+  });
+}
   loadRegions(): void {
     this.isLoading = true;
     this.regionService.getAll().subscribe({
@@ -60,7 +83,24 @@ export class RegionComponent implements OnInit {
    
   }
 
-
+selectRegion(region: Region): void {
+    if (this.selectedRegionId === region.id) {
+      // Déselectionner si déjà sélectionnée
+      this.selectedRegionId = null;
+      this.departements = [];
+    } else {
+      this.selectedRegionId = region.id!;
+      // Charger les départements pour cette région
+      this.departementService.getByRegion(region.id!).subscribe({
+        next: (data) => {
+          this.departements = data;
+        },
+        error: () => {
+          alert('Erreur lors du chargement des départements');
+        }
+      });
+    }
+  }
   addRegion(): void {
     if (!this.newRegion.nom || this.newRegion.nom.trim() === '') {
       this.showNotification('Veuillez remplir le nom de la région', 'error');

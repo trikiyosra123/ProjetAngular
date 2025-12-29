@@ -200,6 +200,34 @@ body::before {
   transform: translateY(-1px) scale(1.02);
 }
 
+.btn-container {
+  text-align: right;
+  margin: 20px 0;
+}
+
+.btn-container button {
+  background-color: #f19ca8;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  font-size: 15px; /* police légèrement plus petite */
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  width: max-content; /* ou fit-content */
+}
+.btn-container button:hover {
+  background-color: #67d1a5; /* couleur au survol */
+  transform: translateY(-2px); /* léger effet de levée */
+  box-shadow: 0 6px 10px rgba(0,0,0,0.15);
+}
+
+.btn-container button:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
 /* Section filtres avec animations */
 .filters {
   background: white;
@@ -329,6 +357,36 @@ body::before {
   font-size: 24px;
   opacity: 0;
   transition: all 0.3s ease;
+}
+/* Container pour le bouton */
+.report-actions {
+  margin: 20px 0;
+  text-align: right; /* bouton aligné à droite */
+}
+
+/* Bouton Télécharger le PDF */
+.report-actions button {
+  background-color: #55bb1a; /* bleu moderne */
+  color: #fff; /* texte blanc */
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 6px; /* coins arrondis */
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.report-actions button:hover {
+  background-color: #67d1a5; /* couleur au survol */
+  transform: translateY(-2px); /* léger effet de levée */
+  box-shadow: 0 6px 10px rgba(0,0,0,0.15);
+}
+
+.report-actions button:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
 .btn-reset:hover {
@@ -636,11 +694,20 @@ body::before {
 }
 
 .modal-actions {
+  position: fixed;
+  top: 10px; /* même hauteur que la navbar */
+  left: 0;
+  width: 100%;
+  background: white;
+  padding: 15px 30px;
   display: flex;
-  gap: 18px;
-  margin-top: 35px;
-  animation: actionsSlide 0.5s ease 0.4s both;
+  justify-content: flex-end;
+  gap: 10px;
+  z-index: 9999;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
+
+
 
 @keyframes actionsSlide {
   from {
@@ -1119,7 +1186,8 @@ tbody tr:hover .initials {
   }
 
   .modal-actions {
-    flex-direction: column;
+   width: 95%;
+    border-radius: 18px;
   }
 
   table {

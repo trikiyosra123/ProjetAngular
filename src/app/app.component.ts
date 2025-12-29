@@ -22,7 +22,8 @@ import { AuthService } from './services/auth.service';
           <li><a routerLink="/personnes" title="Personne"><span class="icon">👤</span> Personne</a></li>
           <li><a routerLink="/departements" title="Départements"><span class="icon">🏢</span> Départements</a></li>
           <li><a routerLink="/regions" title="Régions"><span class="icon">🗺️</span> Régions</a></li>
-        </ul>
+        
+          </ul>
 
         <!-- Auth Section -->
         <div class="auth">

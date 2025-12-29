@@ -1,136 +1,151 @@
 <div class="container">
   <div class="header">
     <h1>Gestion des Départements</h1>
-    <p class="subtitle">Administrez vos départements et leurs régions associées</p>
+  </div>
+<!-- Bouton pour ouvrir le modal -->
+ <div class="actions-bar">
+
+<button class="btn-add-modal" (click)="openModal()">+ Ajouter un Département</button>
+ </div>
+  <!-- Bouton pour générer/télécharger le PDF -->
+ <div class="report-actions">
+  <button  (click)="downloadReport()">📄 Télécharger le PDF</button>
+</div>
+ <!-- FILTRES REGION --> 
+  <div class="filters">
+    <div class="filter-group">
+      <label>Filtrer par Région</label>
+     <select [(ngModel)]="selectedRegionId" (change)="onRegionChange()">
+  <option [ngValue]="null">Toutes les régions</option>
+  <option *ngFor="let region of regions" [ngValue]="region.id">
+    {{ region.nom }}
+  </option>
+</select>
+
+
+    </div>
+     <button class="btn-reset" (click)="resetFilters()">Réinitialiser les filtres</button>
+          <div class="stats-cards">
+            <div class="stat-card">
+    <p class="filter-result">{{ filteredDepartements.length }} departement(s) trouvée(s)</p>
+  </div>
+  </div>
+ <!-- MODAL AJOUT / MODIF DE DEPARTEMENT -->
+<div class="modal-overlay" *ngIf="isModalOpen" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ editingDeptId ? '✏️ Modifier le Département' : 'Ajouter un Département' }}</h2>
+      <button class="close-btn" (click)="closeModal()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <form (ngSubmit)="addDepartement()">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Nom du département *</label>
+            <input 
+              type="text" 
+              [(ngModel)]="newDept.nom" 
+              name="nom" 
+              required 
+              placeholder="Entrez le nom"
+              class="form-input"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Description</label>
+            <textarea 
+              [(ngModel)]="newDept.description" 
+              name="description" 
+              placeholder="Description"
+              class="form-input"
+            ></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Région *</label>
+            <select 
+              [(ngModel)]="newDept.regionId" 
+              name="regionId" 
+              required
+              class="form-select"
+            >
+              <option value="0" disabled>Sélectionner une région</option>
+              <option *ngFor="let region of regions" [value]="region.id">
+                {{ region.nom }}
+              </option>
+            </select>
+          </div>
+        
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+              {{ editingDeptId ? '✏️ Enregistrer les modifications' : '+ Ajouter le département' }}
+            </button>
+            <button type="button" class="btn btn-secondary" (click)="closeModal()">Annuler</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<div class="table-card">
+  <div class="table-header">
+    <h2>Liste des Départements</h2>
   </div>
 
-  <!-- Formulaire d'ajout/modification -->
-  <div class="form-card">
-    <h2>
-      <span *ngIf="!editingDeptId">Ajouter un Département</span>
-      <span *ngIf="editingDeptId" class="text-warning">✏️ Modifier le Département</span>
-    </h2>
-    <form (ngSubmit)="addDepartement()">
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Nom du département *</label>
-          <input 
-            type="text" 
-            class="form-input"
-            [(ngModel)]="newDept.nom" 
-            name="nom" 
-            required 
-            placeholder="Entrez le nom"
-          />
-        </div>
-        
-        <div class="form-group">
-          <label>Description</label>
-          <textarea 
-            class="form-input"
-            [(ngModel)]="newDept.description" 
-            name="description" 
-            placeholder="Description"
-          ></textarea>
-        </div>
-        
-        <div class="form-group">
-          <label>Région *</label>
-          <select 
-            class="form-select"
-            [(ngModel)]="newDept.regionId" 
-            name="regionId" 
-            required
-          >
-            <option value="0" disabled>Sélectionner une région</option>
-            <option *ngFor="let region of regions" [value]="region.id">
-              {{ region.nom }}
-            </option>
-          </select>
-        </div>
-        
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary">
-            {{ editingDeptId ? '✏️' : '+' }}
-            {{ editingDeptId ? 'Enregistrer les modifications' : 'Ajouter le département' }}
-          </button>
-          
-        </div>
-      </div>
-    </form>
+  <div *ngIf="departements.length === 0" class="empty-state">
+    <div class="empty-content">
+      <div class="empty-icon">📋</div>
+      <p>Aucun département trouvé</p>
+      <small>Commencez par ajouter votre premier département</small>
+    </div>
   </div>
 
-  <!-- Liste des départements -->
-  <div class="table-card">
-    <div class="table-header">
-      <h2>Liste des Départements</h2>
-      <div class="badge">{{ departements.length }} département(s)</div>
-    </div>
+  <div *ngIf="departements.length > 0" class="cards-container">
+<div *ngFor="let dept of filteredDepartements" class="dept-card">
+  <!-- En-tête cliquable -->
+  <div class="dept-header" (click)="toggleDetails(dept.id!)">
+    <span class="dept-name">{{ dept.nom }}</span>
     
-    <div *ngIf="departements.length === 0" class="empty-state">
-      <div class="empty-content">
-        <div class="empty-icon">📋</div>
-        <p>Aucun département trouvé</p>
-        <small>Commencez par ajouter votre premier département</small>
-      </div>
-    </div>
+    <!-- Indicateur visuel pour voir quelle carte est ouverte -->
+    <span class="toggle-indicator">
+      {{ selectedDeptId === dept.id ? '▼' : '▶' }}
+    </span>
     
-    <div *ngIf="departements.length > 0" class="table-container">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nom du département</th>
-            <th>Description</th>
-            <th>Région</th>
-            <th class="text-center">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let dept of departements" class="table-row">
-            <td class="font-medium">#{{ dept.id }}</td>
-            <td class="font-medium">{{ dept.nom }}</td>
+    <span *ngIf="selectedDeptId === dept.id && selectedDeptPersonCount !== null" class="person-count">
+      - {{ selectedDeptPersonCount }} personne(s)
+    </span>
+  </div>
 
+  <!-- Détails + boutons -->
+  <div *ngIf="selectedDeptId === dept.id" class="dept-body">
+    <p>
+      <strong>Description:</strong>
+      <span *ngIf="dept.description; else noDesc">{{ dept.description }}</span>
+      <ng-template #noDesc>Aucune description</ng-template>
+    </p>
+    <p>
+      <strong>Région:</strong>
+      {{ dept.region?.nom || 'Région inconnue' }}
+    </p>
 
-            <td>
-              <span *ngIf="dept.description; else noDescription">
-                {{ dept.description }}
-              </span>
-              <ng-template #noDescription>
-                <span class="text-muted">Aucune description</span>
-              </ng-template>
-            </td>
-          <td>
-  <span class="region-badge">
-    {{ dept.region?.nom || 'Région inconnue' }}
-  </span>
-</td>
-
-
-
-            <td class="text-center">
-              <button 
-                (click)="editDepartement(dept)" 
-                class="btn btn-modf btn-sm"
-                [disabled]="editingDeptId === dept.id"
-              >
-              
-                <span class="btn-icon">✏️</span>
-                {{ editingDeptId === dept.id ? 'En cours...' : 'Modifier' }}
-              </button>
-            </td>
-            <td class="text-center">
-              <button 
-                (click)="deleteDepartement(dept.id)" 
-                class="btn btn-suppr btn-sm"
-              >
-                <span class="btn-icon">🗑️</span>
-                Supprimer
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="dept-actions">
+      <button 
+        (click)="editDepartement(dept); $event.stopPropagation()" 
+        class="btn btn-modf btn-sm"
+        [disabled]="editingDeptId === dept.id"
+      >
+        ✏️ {{ editingDeptId === dept.id ? 'En cours...' : 'Modifier' }}
+      </button>
+      <button 
+        (click)="confirmDelete(dept); $event.stopPropagation()" 
+        class="btn btn-suppr btn-sm"
+      >
+        🗑️ Supprimer
+      </button>
     </div>
   </div>
 </div>

@@ -5,6 +5,7 @@ import { DepartementService } from '../services/departement.service';
 import { RegionService } from '../services/region.service';
 import { Departement, Region } from '../models/models';
 import { forkJoin } from 'rxjs';
+import { ReportService } from '../services/report.Service';
 
 @Component({
   selector: 'app-departement',
@@ -14,18 +15,22 @@ import { forkJoin } from 'rxjs';
   styleUrls: ['./departement.component.css']
 })
 export class DepartementComponent implements OnInit {
+  isModalOpen = false;
   departements: Departement[] = [];
-    allRegions: any[] = [];
-regions: Region[] = [];
-
+  allRegions: any[] = [];
+  regions: Region[] = [];
   newDept: any = {
     nom: '',
     description: '',
     regionId: 0
   };
-  
-  editingDeptId: number | null = null;
+  selectedDeptId: number | null = null;
+selectedDeptPersonCount: number | null = null;
+filteredDepartements: Departement[] = [];
+selectedRegionId: number | null = null;
+  allDepartements: Departement[] = [];
 
+editingDeptId: number | null = null;
   notification: { 
     show: boolean; 
     message: string; 
@@ -37,20 +42,33 @@ regions: Region[] = [];
   };
   constructor(
     private departementService: DepartementService,
-    private regionService: RegionService
-  ) {}
+    private regionService: RegionService,    
+          private reportService: ReportService
 
-  ngOnInit() {
-    // Charger les régions et départements en premier, puis les employés
+  ) {}
+  
+  openModal() {
+  this.isModalOpen = true;
+  this.editingDeptId = null; // Pas en mode édition
+  this.newDept = { nom: '', description: '', regionId: 0 }; // reset formulaire
+}
+
+// Fermer le modal
+closeModal() {
+  this.isModalOpen = false;
+}
+
+  ngOnInit(): void {
+    // Charger régions et départements en parallèle
     forkJoin({
       regions: this.regionService.getAll(),
+      departements: this.departementService.getAll()
     }).subscribe({
-      next: (result) => {
-        this.regions = result.regions;
-        this.allRegions = [...result.regions];
-        
-        // Maintenant charger les employés
-        this.loadDepartements();
+      next: ({ regions, departements }) => {
+        this.regions = regions;
+        this.departements = departements;
+        this.allDepartements = [...departements];
+        this.filteredDepartements = [...departements];
       },
       error: (err) => {
         console.error('Erreur chargement données:', err);
@@ -60,7 +78,7 @@ regions: Region[] = [];
   }
 
   loadRegions(): void {
-    this.regionService.getAll().subscribe({
+    this.departementService.getAll().subscribe({
       next: (data) => {
         this.regions = data;
       },
@@ -69,13 +87,66 @@ regions: Region[] = [];
   }
 
   loadDepartements(): void {
-    this.departementService.getAll().subscribe({
-      next: (data) => {
-        this.departements = data;
-      },
-      error: (err) => console.error('Erreur chargement départements:', err)
+    this.departementService.getAll().subscribe(depts => {
+      this.departements = depts;
+      this.allDepartements = [...depts];
+      this.applyFilters();
     });
   }
+  // Méthode pour filtrer les départements
+
+applyFilters(): void {
+  if (this.selectedRegionId) {
+    // Filtrer seulement les départements dont la région correspond
+    this.filteredDepartements = this.departements.filter(d => 
+      d.region?.id === this.selectedRegionId
+    );
+  } else {
+    // Si aucune région sélectionnée, afficher tous
+    this.filteredDepartements = [...this.departements];
+  }
+
+  console.log('Filtres appliqués:', {
+    regionId: this.selectedRegionId,
+    totalDepartements: this.allDepartements.length,
+    resultats: this.filteredDepartements.length
+  });
+}
+
+resetFilters(): void {
+  this.selectedRegionId = null;
+  this.filteredDepartements = [...this.allDepartements];
+}
+
+onRegionChange(): void {
+  this.applyFilters();
+}
+
+// Gardez cette version - elle accepte un nombre
+toggleDetails(deptId: number) {
+  if (this.selectedDeptId === deptId) {
+    this.selectedDeptId = null;
+    this.selectedDeptPersonCount = null;
+  } else {
+    this.selectedDeptId = deptId;
+    this.selectedDeptPersonCount = null;
+
+    this.departementService.countPersonnes(deptId).subscribe({
+      next: (count) => {
+        this.selectedDeptPersonCount = count;
+      },
+      error: (err) => console.error('Erreur compter personnes:', err)
+    });
+  }
+}
+
+
+closeAllCards() {
+  this.selectedDeptId = null;
+  this.selectedDeptPersonCount = null;
+
+}
+
 
   addDepartement(): void {
     if (!this.newDept.nom || !this.newDept.regionId ) {
@@ -91,6 +162,7 @@ if (!selectedRegion) {
   alert('Région invalide');
   return;
 }
+  this.closeModal();
 
 const dataToSend: Departement = {
   nom: this.newDept.nom,
@@ -117,6 +189,8 @@ const dataToSend: Departement = {
          this.showNotification('Département ajouté avec succès !', 'success');
           this.loadDepartements();
           this.resetForm();
+            this.closeModal();
+
         },
         error: (err) => console.error('Erreur ajout departement', err)
       });
@@ -129,6 +203,7 @@ showNotification(message: string, type: 'success' | 'error' | 'info') {
     
   }
   editDepartement(dept: Departement): void {
+      this.isModalOpen = true;
     this.editingDeptId = dept.id!;
     this.newDept = {
       nom: dept.nom,
@@ -137,6 +212,26 @@ showNotification(message: string, type: 'success' | 'error' | 'info') {
     };
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
+downloadReport(): void {
+  console.log('Téléchargement du rapport lancé...');
+ this.reportService.downloadDepartements(this.selectedRegionId ?? undefined).subscribe({
+  next: (blob: Blob) => {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'departements.pdf';
+    a.click();
+    window.URL.revokeObjectURL(url);
+    this.showNotification('Rapport téléchargé avec succès', 'success');
+  },
+  error: (error: any) => {
+    console.error('Erreur téléchargement PDF', error);
+    this.showNotification('Erreur lors du téléchargement du rapport', 'error');
+  }
+});
+
+}
+
 
   cancelEdit(): void {
     this.resetForm();
@@ -151,19 +246,30 @@ showNotification(message: string, type: 'success' | 'error' | 'info') {
     this.editingDeptId = null;
   }
 
-  deleteDepartement(id: number | undefined): void {
-    if (!id) return;
-    if (!confirm('Êtes-vous sûr de vouloir supprimer ce département ?')) return;
 
-    this.departementService.delete(id).subscribe({
-      next: () => {
-        alert('Département supprimé avec succès !');
-        this.loadDepartements();
-        if (this.editingDeptId === id) {
-          this.resetForm();
-        }
-      },
-      error: (err) => console.error('Erreur suppression:', err)
-    });
-  }
+
+
+confirmDelete(dept: Departement) {
+  if (dept.id == null) return; // ignore si id non défini
+
+  this.departementService.hasLiaisons(dept.id).subscribe((result: boolean) => {
+    if(result) {
+      if(confirm('⚠ Cela supprimera aussi toutes les personnes et la liaison avec la région !')) {
+        this.deleteDepartement(dept.id!);
+      }
+    } else {
+      if(confirm('Voulez-vous vraiment supprimer ce département ?')) {
+        this.deleteDepartement(dept.id!);
+      }
+    }
+  });
+}
+
+deleteDepartement(id: number) {
+  this.departementService.delete(id).subscribe(() => {
+    alert('Département supprimé !');
+    this.loadDepartements();
+  });
+}
+
 }
