@@ -73,12 +73,11 @@ downloadReport(): void {
       }
     });
   }
-  // 📌 NOTIFICATIONS
+  //  NOTIFICATIONS
   // ============================================================
   showNotification(message: string, type: 'success' | 'error' | 'info') {
-    console.log('🔔 Notification appelée:', message, type); 
     this.notification = { show: true, message, type };
-    console.log('📊 État notification:', this.notification); 
+   
     
    
   }

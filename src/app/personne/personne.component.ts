@@ -15,25 +15,23 @@ import { ReportService } from '../services/report.Service';
   styleUrls: ['./personne.component.css']
 })
 export class PersonneComponent implements OnInit {
-  // 📌 SERVICES
+  //  SERVICES
   // ============================================================
   employeeService = inject(PersonneService);
   departmentService = inject(DepartementService);
-
   personnes: any[] = [];
   departements: any[] = [];
-    filteredPersonnes: any[] = [];
+  filteredPersonnes: any[] = [];
   allDepartements: any[] = [];
   regions: any[] = [];
   selectedRegionId: number | null = null;
   selectedDepartementId: number | null = null;
-   editingPersonneId: number | null = null;
-typeDeplacement: 'NONE' | 'DEPARTEMENT' | 'REGION' = 'NONE';
-
-nouveauDepartementId: number | null = null;
-nouvelleRegionId: number | null = null;
-    isModalOpen: boolean = false;
-    
+  editingPersonneId: number | null = null;
+  typeDeplacement: 'NONE' | 'DEPARTEMENT' | 'REGION' = 'NONE';
+  nouveauDepartementId: number | null = null;
+  nouvelleRegionId: number | null = null;
+  isModalOpen: boolean = false;
+  
  newPersonne = { 
   nom: '',
   prenom: '',
@@ -51,7 +49,6 @@ nouvelleRegionId: number | null = null;
     type: 'success'
   };
  
-
   constructor(
     private personneService: PersonneService,
     private departementService: DepartementService,
@@ -81,18 +78,18 @@ nouvelleRegionId: number | null = null;
     });
   }
 
- // 🆕 OUVRIR LA MODALE
+ //  OUVRIR LA MODALE
   openModal() {
     this.isModalOpen = true;
   }
 
-  // 🆕 FERMER LA MODALE
+  //  FERMER LA MODALE
   closeModal() {
     this.isModalOpen = false;
     this.resetForm();
   }
 
-  // 🆕 ÉDITER DANS LA MODALE
+  //  ÉDITER DANS LA MODALE
   editPersonneInModal(personne: any) {
     this.newPersonne = {
       nom: personne.nom,
@@ -104,17 +101,17 @@ nouvelleRegionId: number | null = null;
     this.openModal();
   }
   
-   // 📌 NOTIFICATIONS
+   //  NOTIFICATIONS
   // ============================================================
   showNotification(message: string, type: 'success' | 'error' | 'info') {
-    console.log('🔔 Notification appelée:', message, type); 
+     
     this.notification = { show: true, message, type };
-    console.log('📊 État notification:', this.notification); 
+    
     
     // Auto-fermeture après 3 secondes
     setTimeout(() => {
       this.notification.show = false;
-      console.log('❌ Notification fermée'); 
+      
     }, 3000);
   }
 
@@ -122,7 +119,6 @@ nouvelleRegionId: number | null = null;
     this.departementService.getAll().subscribe({
       next: (data) => {
         this.departements = data;
-        console.log("Départements chargés:", this.departements);
         this.loadPersonnes();
       },
       error: (err) => console.error('Erreur chargement départements:', err)
@@ -132,7 +128,6 @@ nouvelleRegionId: number | null = null;
   loadPersonnes() {
     this.personneService.getAllPersonnes().subscribe({
       next: (data) => {
-        console.log("Données brutes API:", data);
          this.personnes = data;
         this.cdRef.detectChanges();
         this.applyFilters();
@@ -160,12 +155,7 @@ applyFilters() {
 
       return match;
     });
-     console.log('Filtres appliqués:', {
-    regionId: this.selectedRegionId,
-    departementId: this.selectedDepartementId,
-    personnes: this.personnes.length,
-    resultats: this.filteredPersonnes.length
-  });
+     
   }
 
   onRegionChange() {
@@ -257,7 +247,6 @@ addPersonne() {
     });
   }
 downloadAttestations(): void {
-    console.log('filteredPersonnes = ', this.filteredPersonnes);
   if (this.filteredPersonnes.length === 0) {
     this.showNotification('Aucune personne à générer', 'info');
     return;
@@ -310,8 +299,6 @@ downloadReport(): void {
     }
   });
 }
-
-
 }
   
   

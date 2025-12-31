@@ -104,13 +104,7 @@ applyFilters(): void {
   } else {
     // Si aucune région sélectionnée, afficher tous
     this.filteredDepartements = [...this.departements];
-  }
-
-  console.log('Filtres appliqués:', {
-    regionId: this.selectedRegionId,
-    totalDepartements: this.allDepartements.length,
-    resultats: this.filteredDepartements.length
-  });
+  } 
 }
 
 resetFilters(): void {
@@ -140,14 +134,10 @@ toggleDetails(deptId: number) {
   }
 }
 
-
 closeAllCards() {
   this.selectedDeptId = null;
   this.selectedDeptPersonCount = null;
-
 }
-
-
   addDepartement(): void {
     if (!this.newDept.nom || !this.newDept.regionId ) {
       alert('Veuillez remplir tous les champs obligatoires');
@@ -165,9 +155,10 @@ if (!selectedRegion) {
   this.closeModal();
 
 const dataToSend: Departement = {
+  //On récupère le nom et description du nouveau département depuis un objet newDept.
   nom: this.newDept.nom,
   description: this.newDept.description,
-  region: selectedRegion // contient id et nom
+  region: selectedRegion // objet contient id et nom
 };
 
 
@@ -197,9 +188,9 @@ const dataToSend: Departement = {
     }
   }
 showNotification(message: string, type: 'success' | 'error' | 'info') {
-    console.log('🔔 Notification appelée:', message, type); 
+    
     this.notification = { show: true, message, type };
-    console.log('📊 État notification:', this.notification); 
+    
     
   }
   editDepartement(dept: Departement): void {
@@ -231,8 +222,6 @@ downloadReport(): void {
 });
 
 }
-
-
   cancelEdit(): void {
     this.resetForm();
   }
@@ -245,7 +234,6 @@ downloadReport(): void {
     };
     this.editingDeptId = null;
   }
-
 
 
 
